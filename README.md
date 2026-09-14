@@ -77,6 +77,8 @@ With limited time and a system that had to be built, wired, printed, and integra
 
 The map also contains phantom wall segments where the corridor has windows. Glass either passes the beam or reflects it off-axis, so range readings there are inconsistent and `slam_toolbox` writes structure that isn't real. Also visible in the video.
 
+The drone's legs sit inside the LiDAR's scan plane, so laser_filters drops all returns under a minimum range threshold to keep them out of the map. The cost is a set of blind wedges that move with the drone, visible in demo 1 as small gaps in the occupancy grid near the vehicle. In practice they close almost immediately: as the drone advances, cells that were occluded on one frame get scanned from a new position on the next, and slam_toolbox fills them in. The gaps only persist if the drone holds still.
+
 **Detection ran onboard.** YOLOv8n inference on the Pi 5, using the same ELP camera and mount that flew, produced stable person detections at a usable rate with the drone held at a fixed height (demo 2). This established that the compute and camera choices were adequate for the detection half of the system. It does not establish detection performance in flight, where vibration, motion blur, and changing viewing angle all work against it, and we never tested that.
 
 **The drone was overweight.** Battery, payload, and electronics put the F450 near its practical limit, and handling suffered. This shortened useful test runs and limited how the system could be flown.
