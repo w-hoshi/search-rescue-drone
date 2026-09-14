@@ -31,11 +31,11 @@ DFR0315 2D LiDAR ──> laser_filters ──> rf2o_laser_odometry ──> /odom
 ELP USB camera ──> yolo_ros (YOLOv8) ──> /yolo/detections ──> [person_mapper]
 ```
 
-Two things about that diagram are worth stating plainly:
+Two things about that diagram:
 
 **Localization is LiDAR-only.** Odometry comes from scan matching in `rf2o_laser_odometry`. The MPU-6050 IMU is wired and readable but is not in the estimation loop; see below for what we tried. The camera is monocular, so there is no visual SLAM and no depth.
 
-**Detection and mapping ran as separate subsystems.** Both halves work on their own — mapping in demo 1, detection in demo 2 — but they were never run together. Bounding boxes were never placed onto the occupancy grid. The node that would do that, `person_mapper`, is in this repo and was never run. The bracket around it in the diagram marks that boundary.
+**Detection and mapping ran as separate subsystems.** Both halves work on their own but they were never run together. Bounding boxes were never placed onto the occupancy grid. The node that would do that, `person_mapper`, is in this repo and was never run. The bracket around it in the diagram marks that boundary.
 
 ## Repository layout
 
@@ -47,8 +47,7 @@ src/
 hardware/
 ├── cad/                   Payload housing, STEP + STL + native
 └── images/                Build and assembly photos
-docs/
-└── frames_*.pdf           tf tree dumps from view_frames at three test stages
+
 ```
 
 Mechanical design notes, constraints, and what I would change are in [`hardware/README.md`](hardware/README.md).
@@ -88,21 +87,21 @@ The map also contains phantom wall segments where the corridor has windows. Glas
 
 The original plan was to fuse the MPU-6050 with laser odometry so the two would cover each other's weaknesses.
 
-The problem showed up immediately: sitting completely still on a bench, the IMU produced a consistent drift in one direction. The integrated estimate reported the payload translating when nothing was moving. That is the signature of accelerometer bias, a small constant error in the raw reading. Because position comes from integrating acceleration twice, a constant bias doesn't stay small. It grows as the square of elapsed time, so a stationary system slowly accelerates off into nowhere.
+We had some immediate problems. Even when it was sitting completely still on a bench, the IMU produced a consistent drift in one direction. The integrated estimate reported the payload translating when nothing was moving. This small constant error in the raw reading is typical and comes from integrating acceleration twice and the constant bias grows as the square of elapsed time, so a stationary system slowly accelerates off into nowhere.
 
-**First attempt: subtract a static offset.** Hold the payload still, average the readings, treat the result as the bias, and subtract it. This helped for the first few seconds and then stopped helping. The cheap MEMS accelerometer's bias didn't stay a fixed number. It shifted with temperature, and the Pi and buck converter sitting in a sealed PETG enclosure meant temperature was increasing the whole time the system ran. Any offset calibrated cold was wrong once things warmed up. On top of that, calibrating on a bench and flying under spinning props are different environments: vibration adds broadband noise the accelerometer can't separate from real motion, and once the airframe tilts, part of gravity leaks into the horizontal axes and reads as sideways acceleration.
+**First attempt: subtract a static offset.** Hold the payload still, average the readings, treat the result as the bias, and subtract it. This helped for the first few seconds and then stopped helping. The cheap MEMS accelerometer's bias didn't stay a fixed number. It shifted with temperature, and the Pi and buck converter sitting in a sealed PETG enclosure meant temperature was increasing the whole time the system ran. On top of that, calibrating on a bench and flying under spinning props are different environments: vibration adds broadband noise the accelerometer can't separate from real motion, and once the airframe tilts, part of gravity leaks into the horizontal axes and reads as sideways acceleration.
 
-**Second attempt: an EKF.** Fusing IMU and laser odometry in an extended Kalman filter is the textbook answer, and the filter didn't help either. Two reasons, in hindsight. An EKF weights each input by its assumed noise, so it needs realistic covariances to work, and getting those right for a vibrating MPU-6050 is its own tuning problem that we didn't have time to solve. More fundamentally, there wasn't much for the IMU to add. Scan matching against corridor walls was already giving a decent pose estimate at a reasonable rate, and injecting a noisy, biased second source made the fused output worse than the odometry alone. Fusion helps when each sensor is strong where the other is weak; here one sensor was simply better on every axis that mattered.
+**Second attempt: an EKF.** Fusing IMU and laser odometry in an extended Kalman filter was a suggested solution, but the filter didn't help either. An EKF weights each input by its assumed noise, so it needs realistic covariances to work, and getting those right for a vibrating MPU-6050 is its own tuning problem that we didn't have time to solve. More fundamentally, there wasn't much for the IMU to add. Scan matching against corridor walls was already giving a decent pose estimate at a reasonable rate, and injecting a noisy, biased second source made the fused output worse than the odometry alone. 
 
-**What we shipped.** LiDAR-only localization through `rf2o_laser_odometry` and `slam_toolbox`. The IMU driver is still in the build and publishing, just not feeding the estimator.
+**Final Result** LiDAR-only localization through `rf2o_laser_odometry` and `slam_toolbox`. The IMU driver is still in the build and publishing, just not feeding the estimator.
 
-The honest conclusion is that a $20 6-DOF IMU with no magnetometer, stuck to a vibrating airframe with foam tape, isn't a useful localization input in a feature-rich indoor environment where a LiDAR can see walls. It would matter more in a long featureless corridor or a smoke-filled room where scan matching has nothing to lock onto, which is exactly the case this system was nominally built for and never tested in.
+In hindsight its not a suprising conclusion is that a $20 6-DOF IMU with no magnetometer, stuck to a vibrating airframe with foam tape, isn't a useful localization input in a feature-rich indoor environment where a LiDAR can see walls. It would matter more in a long featureless corridor or a smoke-filled room where scan matching has nothing to lock onto but it was never tested in either enviroments.
 
 Worth separating two failures here, because they have different fixes. The bias instability is a component choice problem, and a better IMU with onboard temperature compensation would reduce it. The vibration coupling and the thermal drift are mechanical problems that my housing caused and a different housing could have prevented — see [`hardware/README.md`](hardware/README.md).
 
 ## person_mapper: implemented, never validated
 
-This is the piece that would have made the system do what it claims: put detected people onto the map. It is fully written and was never run against live SLAM and detection. Not a stub, just never integrated into a launch file and never tested.
+This is the piece that would have made the system do what it claims: put detected people onto the map. It is fully written and was never run against live SLAM and detection. Never integrated into a launch file and never tested due to time constraints.
 
 The approach, given a monocular camera and no depth sensor:
 
