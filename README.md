@@ -97,8 +97,6 @@ We had some immediate problems. Even when it was sitting completely still on a b
 
 In hindsight its not a suprising conclusion is that a $20 6-DOF IMU with no magnetometer, stuck to a vibrating airframe with foam tape, isn't a useful localization input in a feature-rich indoor environment where a LiDAR can see walls. It would matter more in a long featureless corridor or a smoke-filled room where scan matching has nothing to lock onto but it was never tested in either enviroments.
 
-Worth separating two failures here, because they have different fixes. The bias instability is a component choice problem, and a better IMU with onboard temperature compensation would reduce it. The vibration coupling and the thermal drift are mechanical problems that my housing caused and a different housing could have prevented — see [`hardware/README.md`](hardware/README.md).
-
 ## person_mapper: implemented, never validated
 
 This is the piece that would have made the system do what it claims: put detected people onto the map. It is fully written and was never run against live SLAM and detection. Never integrated into a launch file and never tested due to time constraints.
