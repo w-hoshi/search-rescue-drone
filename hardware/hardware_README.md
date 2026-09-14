@@ -5,8 +5,8 @@ The enclosure that carries the LiDAR, camera, IMU, Pi 5, and power electronics, 
 Finished payload: **0.76 kg**, PETG, cylindrical body with a detachable front face.
 
 <!-- Replace these filenames with your actual uploads in hardware/images/ -->
-![Assembled payload mounted to the F450](images/photo.jpg)
-![Internal layout: Pi 5, buck converter, IMU](image/CADimage.png)
+![Assembled payload mounted to the F450](Pictures/photo.jpg)
+![Internal layout: Pi 5, buck converter, IMU](Pictures/CADimage.png)
 
 ## What the housing had to do
 
