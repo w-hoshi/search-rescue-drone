@@ -144,7 +144,7 @@ Design constraints, the reasoning behind each of those choices, and what I would
 
 ME 461 senior design, Boston University. Team 248: Wataru Hoshi, Justen Li, Jonathan Thea, Vincent Lin. Advised by Prof. Geiger, with Prof. Tron as technical advisor.
 
-My work: sensor selection (LiDAR and IMU), payload housing design and 3D printing, mechanical integration and mounting, electrical assembly with Jonathan Thea, running and tuning the SLAM pipeline, the IMU drift investigation above, and the `person_mapper` node. Justen Li set up the detection node.
+My work: sensor selection (LiDAR and IMU), payload housing design and 3D printing, mechanical integration and mounting, electrical assembly with Jonathan Thea, running and tuning the SLAM pipeline, the IMU drift investigation above, and the `person_mapper` node. Set up the detection node with Justen Li.
 
 The project concluded with the course and the hardware was returned to the school, so this repo is a record of the work rather than an active project.
 
